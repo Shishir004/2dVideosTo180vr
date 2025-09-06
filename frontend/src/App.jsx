@@ -22,8 +22,9 @@ function App() {
     // Initialize socket connection
     const newSocket = io(API_URL, {
       path: '/api/socket.io',
-      transports: ['websocket'],
+      transports: import.meta.env.PROD ? ['polling'] : ['websocket'], // 👈
     });
+    
     setSocket(newSocket);
 
     newSocket.on('processingUpdate', (data) => {

@@ -21,7 +21,8 @@ const io = socketIo(server, {
   cors: {
     origin: ["http://localhost:3000", "http://localhost:3001", "https://your-vercel-project-name.vercel.app"],
     methods: ["GET", "POST"]
-  }
+  },
+  path: '/api/socket.io'
 });
 
 const PORT = process.env.PORT || 5000;

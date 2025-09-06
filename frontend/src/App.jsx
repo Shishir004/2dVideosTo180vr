@@ -9,6 +9,8 @@ import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import './App.css';
 
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000');
+
 function App() {
   const [currentStep, setCurrentStep] = useState('upload'); // upload, processing, preview
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -18,7 +20,10 @@ function App() {
 
   useEffect(() => {
     // Initialize socket connection
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(API_URL, {
+      path: '/api/socket.io',
+      transports: ['websocket'],
+    });
     setSocket(newSocket);
 
     newSocket.on('processingUpdate', (data) => {
@@ -44,7 +49,7 @@ function App() {
       const formData = new FormData();
       formData.append('video', file);
 
-      const response = await axios.post('/api/upload', formData, {
+      const response = await axios.post(`${API_URL}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

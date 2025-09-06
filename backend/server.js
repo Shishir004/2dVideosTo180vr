@@ -19,7 +19,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001", "https://your-vercel-project-name.vercel.app"],
+    origin: ["http://localhost:3000", "http://localhost:3001", "https://2d-videos-to180vr.vercel.app"],
     methods: ["GET", "POST"]
   },
   path: '/api/socket.io'
@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "https://your-vercel-project-name.vercel.app"],
+  origin: ["http://localhost:3000", "http://localhost:3001", "https://2d-videos-to180vr.vercel.app"],
   credentials: true
 }));
 app.use(express.json());
@@ -292,7 +292,17 @@ app.get('/api/preview/:jobId', (req, res) => {
     }
 });
 
-server.listen(PORT, () => {
-  console.log(`VR 180 Platform server running on port ${PORT}`);
-  console.log('Full video processing enabled.');
-});
+// Vercel serverless export
+// This replaces server.listen() for deployment
+module.exports = (req, res) => {
+  // Allow the server to handle both Express and Socket.IO requests
+  server.emit('request', req, res);
+};
+
+// For local development, we still need to listen on a port
+if (process.env.NODE_ENV !== 'production') {
+  server.listen(PORT, () => {
+    console.log(`VR 180 Platform server running on port ${PORT}`);
+    console.log('Full video processing enabled.');
+  });
+}

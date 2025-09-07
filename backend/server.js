@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
@@ -9,7 +10,7 @@ const socketIo = require('socket.io');
 const ffmpeg = require('fluent-ffmpeg');
 const Jimp = require('jimp');
 
-// Set FFmpeg paths for reliable execution
+// Set FFmpeg paths
 const ffmpegStatic = require('ffmpeg-static');
 const ffprobeStatic = require('ffprobe-static');
 ffmpeg.setFfmpegPath(ffmpegStatic);
@@ -19,7 +20,11 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001", "https://your-vercel-project-name.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://your-frontend.vercel.app" // 🔹 update with your frontend domain
+    ],
     methods: ["GET", "POST"]
   }
 });
@@ -28,19 +33,31 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "https://your-vercel-project-name.vercel.app"],
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://your-frontend.vercel.app" // 🔹 update with your frontend domain
+  ],
   credentials: true
 }));
 app.use(express.json());
 app.use(express.static('public'));
 
-// Vercel serverless environment requires using the /tmp directory for writes
-const uploadsDir = path.join('/tmp', 'uploads');
-const outputDir = path.join('/tmp', 'output');
-const tempDir = path.join('/tmp', 'temp');
-fs.ensureDirSync(uploadsDir);
-fs.ensureDirSync(outputDir);
-fs.ensureDirSync(tempDir);
+// ---------------------
+// Directory Setup
+// ---------------------
+const baseDir = path.resolve();
+const uploadsDir = path.join(baseDir, "uploads");
+const outputDir = path.join(baseDir, "output");
+const tempDir = path.join(baseDir, "tmp");
+
+// Ensure directories exist
+[uploadsDir, outputDir, tempDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`Created missing directory: ${dir}`);
+  }
+});
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -72,8 +89,6 @@ const upload = multer({
 });
 
 // Socket.io connection handling
-// Note: Socket.IO might have issues in a serverless environment without extra configuration.
-// This setup will work for the initial deployment, but may need adjustment for scaling.
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
   
@@ -82,7 +97,9 @@ io.on('connection', (socket) => {
   });
 });
 
+// ---------------------
 // VR 180 Video Processor Class
+// ---------------------
 class VR180Processor {
   constructor(jobId, inputPath, originalName, io) {
     this.jobId = jobId;
@@ -227,7 +244,9 @@ class VR180Processor {
   }
 }
 
+// ---------------------
 // Routes
+// ---------------------
 app.get('/health', (req, res) => res.json({ status: 'healthy' }));
 
 app.post('/api/upload', upload.single('video'), (req, res) => {
@@ -259,39 +278,42 @@ app.get('/api/download/:jobId', (req, res) => {
 });
 
 app.get('/api/preview/:jobId', (req, res) => {
-    const videoPath = path.join(outputDir, `${req.params.jobId}-vr180.mp4`);
-    if (!fs.existsSync(videoPath)) {
-        return res.status(404).send('Video not found');
-    }
-    const stat = fs.statSync(videoPath);
-    const fileSize = stat.size;
-    const range = req.headers.range;
+  const videoPath = path.join(outputDir, `${req.params.jobId}-vr180.mp4`);
+  if (!fs.existsSync(videoPath)) {
+    return res.status(404).send('Video not found');
+  }
+  const stat = fs.statSync(videoPath);
+  const fileSize = stat.size;
+  const range = req.headers.range;
 
-    if (range) {
-        const parts = range.replace(/bytes=/, "").split("-");
-        const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-        const chunksize = (end - start) + 1;
-        const file = fs.createReadStream(videoPath, {start, end});
-        const head = {
-            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-            'Accept-Ranges': 'bytes',
-            'Content-Length': chunksize,
-            'Content-Type': 'video/mp4',
-        };
-        res.writeHead(206, head);
-        file.pipe(res);
-    } else {
-        const head = {
-            'Content-Length': fileSize,
-            'Content-Type': 'video/mp4',
-        };
-        res.writeHead(200, head);
-        fs.createReadStream(videoPath).pipe(res);
-    }
+  if (range) {
+    const parts = range.replace(/bytes=/, "").split("-");
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+    const chunksize = (end - start) + 1;
+    const file = fs.createReadStream(videoPath, { start, end });
+    const head = {
+      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunksize,
+      'Content-Type': 'video/mp4',
+    };
+    res.writeHead(206, head);
+    file.pipe(res);
+  } else {
+    const head = {
+      'Content-Length': fileSize,
+      'Content-Type': 'video/mp4',
+    };
+    res.writeHead(200, head);
+    fs.createReadStream(videoPath).pipe(res);
+  }
 });
 
+// ---------------------
+// Start Server
+// ---------------------
 server.listen(PORT, () => {
-  console.log(`VR 180 Platform server running on port ${PORT}`);
+  console.log(`🚀 VR 180 Platform server running on port ${PORT}`);
   console.log('Full video processing enabled.');
 });

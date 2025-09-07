@@ -14,9 +14,12 @@ import {
 } from 'lucide-react';
 
 const ProcessingSection = ({ status, uploadedFile }) => {
+  const progress = typeof status?.progress === 'number' ? status.progress : 0;
+
+  // Icon based on current status
   const getStatusIcon = () => {
     if (!status) return <Loader className="w-6 h-6 animate-spin" />;
-    
+
     switch (status.status) {
       case 'processing':
         return <Loader className="w-6 h-6 animate-spin text-blue-400" />;
@@ -29,9 +32,10 @@ const ProcessingSection = ({ status, uploadedFile }) => {
     }
   };
 
+  // Progress color based on status
   const getStatusColor = () => {
     if (!status) return '#667eea';
-    
+
     switch (status.status) {
       case 'processing':
         return '#667eea';
@@ -44,6 +48,7 @@ const ProcessingSection = ({ status, uploadedFile }) => {
     }
   };
 
+  // Pipeline steps
   const processingSteps = [
     {
       id: 'analyzing',
@@ -82,19 +87,19 @@ const ProcessingSection = ({ status, uploadedFile }) => {
     }
   ];
 
+  // Determine current active step
   const getCurrentStep = () => {
-    if (!status || !status.progress) return 0;
-    
-    const progress = status.progress;
-    return processingSteps.findIndex(step => 
+    const stepIndex = processingSteps.findIndex(step => 
       progress >= step.range[0] && progress < step.range[1]
     );
+    return stepIndex >= 0 ? stepIndex : 0;
   };
 
   const currentStepIndex = getCurrentStep();
 
   return (
     <div className="content-section">
+      {/* Title */}
       <motion.div 
         className="text-center mb-8"
         initial={{ opacity: 0, y: 20 }}
@@ -129,13 +134,22 @@ const ProcessingSection = ({ status, uploadedFile }) => {
             </div>
             <div className="flex items-center gap-2">
               {getStatusIcon()}
-              <span className={`text-sm font-medium ${
-                status?.status === 'error' ? 'text-red-400' : 
-                status?.status === 'completed' ? 'text-green-400' : 'text-blue-400'
-              }`}>
-                {status?.status === 'processing' ? 'Processing' :
-                 status?.status === 'completed' ? 'Completed' :
-                 status?.status === 'error' ? 'Error' : 'Starting'}
+              <span
+                className={`text-sm font-medium ${
+                  status?.status === 'error'
+                    ? 'text-red-400'
+                    : status?.status === 'completed'
+                    ? 'text-green-400'
+                    : 'text-blue-400'
+                }`}
+              >
+                {status?.status === 'processing'
+                  ? 'Processing'
+                  : status?.status === 'completed'
+                  ? 'Completed'
+                  : status?.status === 'error'
+                  ? 'Error'
+                  : 'Starting'}
               </span>
             </div>
           </div>
@@ -151,8 +165,8 @@ const ProcessingSection = ({ status, uploadedFile }) => {
       >
         <div className="w-48 h-48">
           <CircularProgressbar
-            value={status?.progress || 0}
-            text={`${Math.round(status?.progress || 0)}%`}
+            value={progress}
+            text={`${Math.round(progress)}%`}
             styles={buildStyles({
               textSize: '16px',
               pathColor: getStatusColor(),
@@ -189,75 +203,76 @@ const ProcessingSection = ({ status, uploadedFile }) => {
         <h3 className="text-xl font-semibold text-white mb-6 text-center">
           Processing Pipeline
         </h3>
-        
+
         <div className="space-y-4">
           {processingSteps.map((step, index) => {
             const isActive = index === currentStepIndex;
-            const isCompleted = status?.progress >= step.range[1];
-            const isUpcoming = index > currentStepIndex;
-            
+            const isCompleted = progress >= step.range[1];
+
             return (
               <motion.div
                 key={step.id}
                 className={`flex items-center gap-4 p-4 rounded-lg transition-all duration-300 ${
-                  isActive ? 'bg-blue-500 bg-opacity-20 border border-blue-500 border-opacity-30' :
-                  isCompleted ? 'bg-green-500 bg-opacity-20 border border-green-500 border-opacity-30' :
-                  'bg-white bg-opacity-5 border border-white border-opacity-10'
+                  isActive
+                    ? 'bg-blue-500 bg-opacity-20 border border-blue-500 border-opacity-30'
+                    : isCompleted
+                    ? 'bg-green-500 bg-opacity-20 border border-green-500 border-opacity-30'
+                    : 'bg-white bg-opacity-5 border border-white border-opacity-10'
                 }`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.8 + index * 0.1 }}
               >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  isActive ? 'bg-blue-500' :
-                  isCompleted ? 'bg-green-500' :
-                  'bg-white bg-opacity-10'
-                }`}>
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    isActive
+                      ? 'bg-blue-500'
+                      : isCompleted
+                      ? 'bg-green-500'
+                      : 'bg-white bg-opacity-10'
+                  }`}
+                >
                   {isCompleted ? (
                     <CheckCircle className="w-5 h-5 text-white" />
                   ) : isActive ? (
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                     >
                       {step.icon}
                     </motion.div>
                   ) : (
-                    <div className="text-white opacity-50">
-                      {step.icon}
-                    </div>
+                    <div className="text-white opacity-50">{step.icon}</div>
                   )}
                 </div>
-                
+
                 <div className="flex-1">
-                  <h4 className={`font-semibold ${
-                    isActive || isCompleted ? 'text-white' : 'text-white opacity-70'
-                  }`}>
+                  <h4
+                    className={`font-semibold ${
+                      isActive || isCompleted ? 'text-white' : 'text-white opacity-70'
+                    }`}
+                  >
                     {step.title}
                   </h4>
-                  <p className={`text-sm ${
-                    isActive || isCompleted ? 'text-white opacity-80' : 'text-white opacity-50'
-                  }`}>
+                  <p
+                    className={`text-sm ${
+                      isActive || isCompleted ? 'text-white opacity-80' : 'text-white opacity-50'
+                    }`}
+                  >
                     {step.description}
                   </p>
                 </div>
-                
+
                 <div className="text-right">
-                  <div className={`text-sm font-medium ${
-                    isActive || isCompleted ? 'text-white' : 'text-white opacity-50'
-                  }`}>
+                  <div
+                    className={`text-sm font-medium ${
+                      isActive || isCompleted ? 'text-white' : 'text-white opacity-50'
+                    }`}
+                  >
                     {step.range[0]}% - {step.range[1]}%
                   </div>
-                  {isActive && (
-                    <div className="text-xs text-blue-300 mt-1">
-                      In Progress
-                    </div>
-                  )}
-                  {isCompleted && (
-                    <div className="text-xs text-green-300 mt-1">
-                      Completed
-                    </div>
-                  )}
+                  {isActive && <div className="text-xs text-blue-300 mt-1">In Progress</div>}
+                  {isCompleted && <div className="text-xs text-green-300 mt-1">Completed</div>}
                 </div>
               </motion.div>
             );

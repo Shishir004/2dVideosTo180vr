@@ -9,10 +9,10 @@ import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import './App.css';
 
-// ✅ API base URL config
+// ✅ Dynamic API base URL
 const API_URL =
   process.env.NODE_ENV === "production"
-    ? "https://twodvideosto180vr.onrender.com"
+    ? "https://twodvideosto180vr.onrender.com" // your backend deployed URL
     : "http://localhost:5000";
 
 function App() {
@@ -51,7 +51,7 @@ function App() {
       const formData = new FormData();
       formData.append('video', file);
 
-      // ✅ Updated API call
+      // ✅ Upload video to backend
       const response = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -66,7 +66,6 @@ function App() {
         message: 'Starting video processing...',
         originalName: response.data.originalName
       });
-
     } catch (error) {
       console.error('Upload error:', error);
       setProcessingStatus({
@@ -98,7 +97,7 @@ function App() {
             <UploadSection onFileUpload={handleFileUpload} />
           </motion.div>
         );
-      
+
       case 'processing':
         return (
           <motion.div
@@ -114,7 +113,7 @@ function App() {
             />
           </motion.div>
         );
-      
+
       case 'preview':
         return (
           <motion.div
@@ -128,11 +127,11 @@ function App() {
               jobId={jobId}
               originalFile={uploadedFile}
               onStartOver={handleStartOver}
-              apiUrl={API_URL}   // ✅ pass API URL to PreviewSection for preview/download
+              apiUrl={API_URL}   // ✅ Pass API URL here
             />
           </motion.div>
         );
-      
+
       default:
         return null;
     }

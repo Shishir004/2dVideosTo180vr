@@ -23,7 +23,7 @@ const io = socketIo(server, {
     origin: [
       "http://localhost:3000",
       "http://localhost:3001",
-      "https://your-frontend.vercel.app" // 🔹 update with your frontend domain
+      'https://2d-videos-to180vr-f38b.vercel.app' // 🔹 update with your frontend domain
     ],
     methods: ["GET", "POST"]
   }

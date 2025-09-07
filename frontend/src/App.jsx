@@ -9,6 +9,12 @@ import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import './App.css';
 
+// ✅ API base URL config
+const API_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://twodvideosto180vr.onrender.com"
+    : "http://localhost:5000";
+
 function App() {
   const [currentStep, setCurrentStep] = useState('upload'); // upload, processing, preview
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -17,8 +23,10 @@ function App() {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // Initialize socket connection
-    const newSocket = io('http://localhost:5000');
+    // ✅ Initialize socket connection
+    const newSocket = io(API_URL, {
+      transports: ["websocket"],
+    });
     setSocket(newSocket);
 
     newSocket.on('processingUpdate', (data) => {
@@ -26,7 +34,6 @@ function App() {
       if (data.status === 'completed') {
         setCurrentStep('preview');
       } else if (data.status === 'error') {
-        // Handle error state
         console.error('Processing error:', data.message);
       }
     });
@@ -44,7 +51,8 @@ function App() {
       const formData = new FormData();
       formData.append('video', file);
 
-      const response = await axios.post('/api/upload', formData, {
+      // ✅ Updated API call
+      const response = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -120,6 +128,7 @@ function App() {
               jobId={jobId}
               originalFile={uploadedFile}
               onStartOver={handleStartOver}
+              apiUrl={API_URL}   // ✅ pass API URL to PreviewSection for preview/download
             />
           </motion.div>
         );

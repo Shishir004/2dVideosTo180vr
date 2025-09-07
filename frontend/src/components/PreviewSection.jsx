@@ -32,7 +32,7 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
 
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = `/api/download/${jobId}`;
+    link.href = `${apiUrl}/api/download/${jobId}`;
     link.download = `vr180-${originalFile?.name || 'video'}.mp4`;
     document.body.appendChild(link);
     link.click();
@@ -104,11 +104,11 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
           ref={videoRef}
           className="w-full h-auto"
           controls
-          poster="/api/thumbnail"
+          poster={`${apiUrl}/api/thumbnail`}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
         >
-          <source src={`/api/preview/${jobId}`} type="video/mp4" />
+          <source src={`${apiUrl}/api/preview/${jobId}`} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         

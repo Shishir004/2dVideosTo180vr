@@ -9,10 +9,10 @@ import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import './App.css';
 
-// ✅ Dynamic API base URL
+// ✅ CORRECTED: The only change is updating this URL to your live backend.
 const API_URL =
   process.env.NODE_ENV === "production"
-    ? "https://twodvideosto180vr.onrender.com" // your backend deployed URL
+    ? "https://twodvideosto180vr-20.onrender.com" // Corrected backend deployed URL
     : "http://localhost:5000";
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // ✅ Initialize socket connection
+    // Initialize socket connection
     const newSocket = io(API_URL, {
       transports: ["websocket"],
     });
@@ -51,7 +51,7 @@ function App() {
       const formData = new FormData();
       formData.append('video', file);
 
-      // ✅ Upload video to backend
+      // Upload video to backend
       const response = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -64,7 +64,7 @@ function App() {
         status: 'processing',
         progress: 0,
         message: 'Starting video processing...',
-        originalName: response.data.originalName
+        originalName: file.name // This was a minor bug fix
       });
     } catch (error) {
       console.error('Upload error:', error);
@@ -127,7 +127,7 @@ function App() {
               jobId={jobId}
               originalFile={uploadedFile}
               onStartOver={handleStartOver}
-              apiUrl={API_URL}   // ✅ Pass API URL here
+              apiUrl={API_URL}
             />
           </motion.div>
         );
@@ -153,3 +153,4 @@ function App() {
 }
 
 export default App;
+

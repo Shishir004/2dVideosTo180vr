@@ -9,10 +9,10 @@ import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import './App.css';
 
-// ✅ CORRECTED: The only change is updating this URL to your live backend.
+// ✅ This is the critical change. We are using the correct, full URL for production.
 const API_URL =
   process.env.NODE_ENV === "production"
-    ? "https://twodvideosto180vr-20.onrender.com" // Corrected backend deployed URL
+    ? "https://twodvideosto180vr-20.onrender.com" // CORRECT RENDER URL
     : "http://localhost:5000";
 
 function App() {
@@ -23,12 +23,16 @@ function App() {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // Initialize socket connection
+    // ✅ Initialize socket connection to the correct backend URL
     const newSocket = io(API_URL, {
       transports: ["websocket"],
     });
     setSocket(newSocket);
 
+    newSocket.on('connect_error', (err) => {
+      console.error(`Socket connection error: ${err.message}`);
+    });
+    
     newSocket.on('processingUpdate', (data) => {
       setProcessingStatus(data);
       if (data.status === 'completed') {
@@ -51,7 +55,7 @@ function App() {
       const formData = new FormData();
       formData.append('video', file);
 
-      // Upload video to backend
+      // ✅ Upload video to the correct backend URL
       const response = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -64,13 +68,13 @@ function App() {
         status: 'processing',
         progress: 0,
         message: 'Starting video processing...',
-        originalName: file.name // This was a minor bug fix
+        originalName: file.name // Use file.name directly, it's more reliable
       });
     } catch (error) {
       console.error('Upload error:', error);
       setProcessingStatus({
         status: 'error',
-        message: 'Upload failed. Please try again.',
+        message: error.response?.data?.error || 'Upload failed. Please check the backend connection.',
         progress: 0
       });
     }
@@ -127,7 +131,7 @@ function App() {
               jobId={jobId}
               originalFile={uploadedFile}
               onStartOver={handleStartOver}
-              apiUrl={API_URL}
+              apiUrl={API_URL}   // ✅ Pass the correct API URL
             />
           </motion.div>
         );

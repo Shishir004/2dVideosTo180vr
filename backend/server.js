@@ -22,7 +22,7 @@ const io = socketIo(server, {
     origin: [
       "http://localhost:3000", 
       "http://localhost:3001", 
-      "https://2d-videos-to180vr.vercel.app",
+      "https://2d-videos-to180vr-h6dl.vercel.app",
       /^https:\/\/vr180-platform.*\.onrender\.com$/,
       /^https:\/\/.*\.render\.com$/
     ],

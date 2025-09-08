@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: vr180-platform
+    runtime: docker
+    plan: free
+    buildCommand: npm run install-all
+    startCommand: npm run server
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: vr180-storage
+      mountPath: /tmp
+      sizeGB: 1

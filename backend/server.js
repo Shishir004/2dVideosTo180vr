@@ -308,22 +308,6 @@ app.get('/api/preview/:jobId', (req, res) => {
     }
 });
 
-<<<<<<< HEAD
-// Vercel serverless export
-// This replaces server.listen() for deployment
-module.exports = (req, res) => {
-  // Allow the server to handle both Express and Socket.IO requests
-  server.emit('request', req, res);
-};
-
-// For local development, we still need to listen on a port
-if (process.env.NODE_ENV !== 'production') {
-  server.listen(PORT, () => {
-    console.log(`VR 180 Platform server running on port ${PORT}`);
-    console.log('Full video processing enabled.');
-  });
-}
-=======
 // Catch-all handler for React Router in production
 if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
@@ -336,4 +320,3 @@ server.listen(PORT, () => {
   console.log('Full video processing enabled.');
   console.log('Environment:', process.env.NODE_ENV || 'development');
 });
->>>>>>> deployment-setup

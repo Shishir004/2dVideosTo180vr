@@ -20,9 +20,8 @@ function App() {
 
   useEffect(() => {
     // Initialize socket connection
-    const newSocket = io(API_URL, {
-      path: '/api/socket.io',
-      transports: import.meta.env.PROD ? ['polling'] : ['websocket'], // 👈
+    const newSocket = io(window.location.origin, {
+      transports: import.meta.env.PROD ? ['polling'] : ['websocket'],
     });
     
     setSocket(newSocket);
@@ -50,7 +49,7 @@ function App() {
       const formData = new FormData();
       formData.append('video', file);
 
-      const response = await axios.post(`${API_URL}/upload`, formData, {
+      const response = await axios.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

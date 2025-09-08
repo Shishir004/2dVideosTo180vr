@@ -27,8 +27,7 @@ const io = socketIo(server, {
       /^https:\/\/.*\.render\.com$/
     ],
     methods: ["GET", "POST"]
-  },
-  path: '/api/socket.io'
+  }
 });
 
 const PORT = process.env.PORT || 5000;
@@ -259,7 +258,11 @@ app.post('/api/upload', upload.single('video'), (req, res) => {
   const jobId = uuidv4();
   const processor = new VR180Processor(jobId, req.file.path, req.file.originalname, io);
   processor.process();
-  res.json({ jobId, message: 'Processing started.' });
+  res.json({ 
+    jobId, 
+    originalName: req.file.originalname,
+    message: 'Processing started.' 
+  });
 });
 
 app.get('/api/status/:jobId', (req, res) => {

@@ -19,7 +19,13 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001", "https://2d-videos-to180vr.vercel.app"],
+    origin: [
+      "http://localhost:3000", 
+      "http://localhost:3001", 
+      "https://2d-videos-to180vr.vercel.app",
+      /^https:\/\/vr180-platform.*\.onrender\.com$/,
+      /^https:\/\/.*\.render\.com$/
+    ],
     methods: ["GET", "POST"]
   },
   path: '/api/socket.io'
@@ -29,11 +35,21 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "https://2d-videos-to180vr.vercel.app"],
+  origin: [
+    "http://localhost:3000", 
+    "http://localhost:3001", 
+    "https://2d-videos-to180vr.vercel.app",
+    /^https:\/\/vr180-platform.*\.onrender\.com$/,
+    /^https:\/\/.*\.render\.com$/
+  ],
   credentials: true
 }));
 app.use(express.json());
-app.use(express.static('public'));
+
+// Serve static files from React build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+}
 
 // Vercel serverless environment requires using the /tmp directory for writes
 const uploadsDir = path.join('/tmp', 'uploads');
@@ -292,6 +308,7 @@ app.get('/api/preview/:jobId', (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 // Vercel serverless export
 // This replaces server.listen() for deployment
 module.exports = (req, res) => {
@@ -306,3 +323,17 @@ if (process.env.NODE_ENV !== 'production') {
     console.log('Full video processing enabled.');
   });
 }
+=======
+// Catch-all handler for React Router in production
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
+}
+
+server.listen(PORT, () => {
+  console.log(`VR 180 Platform server running on port ${PORT}`);
+  console.log('Full video processing enabled.');
+  console.log('Environment:', process.env.NODE_ENV || 'development');
+});
+>>>>>>> deployment-setup

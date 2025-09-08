@@ -215,16 +215,18 @@ class VR180Processor {
       ffmpeg()
         .input(path.join(vr180FramesDir, 'frame-%05d.png'))
         .inputOptions(['-framerate', '24'])
-        .input(this.inputPath) // To get audio
         .outputOptions([
           '-c:v', 'libx264',
           '-preset', 'fast',
           '-crf', '23',
           '-pix_fmt', 'yuv420p',
-          '-c:a', 'aac',
           '-movflags', '+faststart'
         ])
         .output(outputPath)
+        .on('progress', (progress) => {
+          const finalProgress = 90 + (progress.percent * 0.1);
+          this.updateStatus('processing', Math.min(99, finalProgress), 'Finalizing VR 180 video...');
+        })
         .on('end', () => resolve(outputPath))
         .on('error', (err) => reject(new Error(`Video creation failed: ${err.message}`)))
         .run();
@@ -238,12 +240,21 @@ class VR180Processor {
       const vr180FramesDir = await this.processFrames(framesDir);
       await this.createVR180Video(vr180FramesDir);
       this.updateStatus('completed', 100, 'VR 180 conversion completed!');
+      
+      // Cleanup after successful completion
+      fs.removeSync(this.tempJobDir);
+      fs.removeSync(this.inputPath);
     } catch (error) {
       console.error('Processing error:', error);
       this.updateStatus('error', 0, `Processing failed: ${error.message}`);
-    } finally {
-      fs.removeSync(this.tempJobDir);
-      fs.removeSync(this.inputPath);
+      
+      // Cleanup on error
+      try {
+        fs.removeSync(this.tempJobDir);
+        fs.removeSync(this.inputPath);
+      } catch (cleanupError) {
+        console.error('Cleanup error:', cleanupError);
+      }
     }
   }
 }

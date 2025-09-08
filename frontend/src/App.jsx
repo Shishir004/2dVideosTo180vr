@@ -18,8 +18,9 @@ function App() {
 
   useEffect(() => {
     // Initialize socket connection
-    const newSocket = io('http://localhost:5000');
-    setSocket(newSocket);
+    const newSocket = io("http://localhost:5000", {
+  transports: ["websocket"], // Force WebSocket, skip polling
+});
 
     newSocket.on("processingUpdate", (data) => {
       setProcessingStatus(data);

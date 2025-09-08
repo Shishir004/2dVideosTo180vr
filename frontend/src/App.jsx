@@ -9,31 +9,24 @@ import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import './App.css';
 
-// Point to the production backend URL
-const API_URL = import.meta.env.VITE_API_URL || 'https://twodvideosto180vr-132322.onrender.com';
-
 function App() {
-  const [currentStep, setCurrentStep] = useState('upload'); // upload, processing, preview
+  const [currentStep, setCurrentStep] = useState("upload"); // upload, processing, preview
   const [uploadedFile, setUploadedFile] = useState(null);
   const [jobId, setJobId] = useState(null);
   const [processingStatus, setProcessingStatus] = useState(null);
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // Initialize socket connection to the backend URL
-    const newSocket = io(API_URL, {
-      transports: ['websocket', 'polling'], // Allow both for compatibility
-    });
-    
+    // Initialize socket connection
+    const newSocket = io('http://localhost:5000');
     setSocket(newSocket);
 
-    newSocket.on('processingUpdate', (data) => {
+    newSocket.on("processingUpdate", (data) => {
       setProcessingStatus(data);
-      if (data.status === 'completed') {
-        setCurrentStep('preview');
-      } else if (data.status === 'error') {
-        // Handle error state
-        console.error('Processing error:', data.message);
+      if (data.status === "completed") {
+        setCurrentStep("preview");
+      } else if (data.status === "error") {
+        console.error("Processing error:", data.message);
       }
     });
 
@@ -42,16 +35,16 @@ function App() {
     };
   }, []);
 
+  // Handle file upload to deployed backend
   const handleFileUpload = async (file) => {
     try {
       setUploadedFile(file);
-      setCurrentStep('processing');
+      setCurrentStep("processing");
 
       const formData = new FormData();
-      formData.append('video', file);
+      formData.append("video", file);
 
-      // Use the full backend URL for the API call
-      const response = await axios.post(`${API_URL}/api/upload`, formData, {
+      const response = await axios.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -60,32 +53,32 @@ function App() {
       setJobId(response.data.jobId);
       setProcessingStatus({
         jobId: response.data.jobId,
-        status: 'processing',
+        status: "processing",
         progress: 0,
-        message: 'Starting video processing...',
-        originalName: response.data.originalName
+        message: "Starting video processing...",
+        originalName: response.data.originalName,
       });
-
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       setProcessingStatus({
-        status: 'error',
-        message: 'Upload failed. Please try again.',
-        progress: 0
+        status: "error",
+        message: "Upload failed. Please try again.",
+        progress: 0,
       });
     }
   };
 
   const handleStartOver = () => {
-    setCurrentStep('upload');
+    setCurrentStep("upload");
     setUploadedFile(null);
     setJobId(null);
     setProcessingStatus(null);
   };
 
+  // ✅ Keep all animations exactly as before
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 'upload':
+      case "upload":
         return (
           <motion.div
             key="upload"
@@ -97,8 +90,8 @@ function App() {
             <UploadSection onFileUpload={handleFileUpload} />
           </motion.div>
         );
-      
-      case 'processing':
+
+      case "processing":
         return (
           <motion.div
             key="processing"
@@ -107,14 +100,14 @@ function App() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <ProcessingSection 
+            <ProcessingSection
               status={processingStatus}
               uploadedFile={uploadedFile}
             />
           </motion.div>
         );
-      
-      case 'preview':
+
+      case "preview":
         return (
           <motion.div
             key="preview"
@@ -123,14 +116,14 @@ function App() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <PreviewSection 
+            <PreviewSection
               jobId={jobId}
               originalFile={uploadedFile}
               onStartOver={handleStartOver}
             />
           </motion.div>
         );
-      
+
       default:
         return null;
     }
@@ -139,13 +132,9 @@ function App() {
   return (
     <div className="App">
       <Header />
-      
       <main className="container">
-        <AnimatePresence mode="wait">
-          {renderCurrentStep()}
-        </AnimatePresence>
+        <AnimatePresence mode="wait">{renderCurrentStep()}</AnimatePresence>
       </main>
-
       <Footer />
     </div>
   );

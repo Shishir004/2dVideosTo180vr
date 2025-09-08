@@ -295,11 +295,14 @@ app.get('/api/status/:jobId', (req, res) => {
 app.get('/api/download/:jobId', (req, res) => {
   const videoPath = path.join(outputDir, `${req.params.jobId}-vr180.mp4`);
   if (fs.existsSync(videoPath)) {
-    res.download(videoPath);
+    res.setHeader('Content-Disposition', `attachment; filename="${req.params.jobId}-vr180.mp4"`);
+    res.setHeader('Content-Type', 'video/mp4');
+    fs.createReadStream(videoPath).pipe(res);
   } else {
     res.status(404).json({ error: 'Video not found' });
   }
 });
+
 
 app.get('/api/preview/:jobId', (req, res) => {
     const videoPath = path.join(outputDir, `${req.params.jobId}-vr180.mp4`);

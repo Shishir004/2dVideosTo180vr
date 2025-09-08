@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Download, 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Eye, 
+import {
+  Download,
+  Play,
+  Pause,
+  RotateCcw,
+  Eye,
   Smartphone,
   Monitor,
   Headphones,
@@ -19,6 +19,7 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
   const [viewMode, setViewMode] = useState('vr180'); // vr180, side-by-side, anaglyph
   const videoRef = useRef(null);
 
+  // Toggle Play / Pause
   const handlePlayPause = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -30,9 +31,10 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
     }
   };
 
+  // Download the converted VR video
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = `/api/download/${jobId}`;
+    link.href = `${process.env.REACT_APP_BACKEND_URL || ''}/api/download/${jobId}`;
     link.download = `vr180-${originalFile?.name || 'video'}.mp4`;
     document.body.appendChild(link);
     link.click();
@@ -48,7 +50,8 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
 
   return (
     <div className="content-section">
-      <motion.div 
+      {/* Header */}
+      <motion.div
         className="text-center mb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -61,40 +64,32 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
           </h2>
         </div>
         <p className="text-lg text-white opacity-80">
-          Your immersive VR 180 experience is ready. Preview it below or download for your VR headset.
+          Your immersive VR 180 experience is ready. Preview it below or download it for your VR headset.
         </p>
       </motion.div>
 
       {/* Success Stats */}
-      <motion.div 
+      <motion.div
         className="grid grid-2 gap-6 mb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-green-400 mb-2">4K</div>
-          <div className="text-white opacity-80">Output Resolution</div>
-        </div>
-        
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-blue-400 mb-2">180°</div>
-          <div className="text-white opacity-80">Field of View</div>
-        </div>
-        
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-purple-400 mb-2">30fps</div>
-          <div className="text-white opacity-80">Frame Rate</div>
-        </div>
-        
-        <div className="card text-center">
-          <div className="text-3xl font-bold text-yellow-400 mb-2">✓</div>
-          <div className="text-white opacity-80">VR Optimized</div>
-        </div>
+        {[
+          { label: 'Output Resolution', value: '4K', color: 'text-green-400' },
+          { label: 'Field of View', value: '180°', color: 'text-blue-400' },
+          { label: 'Frame Rate', value: '30fps', color: 'text-purple-400' },
+          { label: 'VR Optimized', value: '✓', color: 'text-yellow-400' },
+        ].map((stat, i) => (
+          <div key={i} className="card text-center">
+            <div className={`text-3xl font-bold mb-2 ${stat.color}`}>{stat.value}</div>
+            <div className="text-white opacity-80">{stat.label}</div>
+          </div>
+        ))}
       </motion.div>
 
       {/* Video Preview */}
-      <motion.div 
+      <motion.div
         className="vr-preview-container mb-8"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -102,25 +97,23 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
       >
         <video
           ref={videoRef}
-          className="w-full h-auto"
+          className="w-full h-auto rounded-lg shadow-lg"
           controls
-          poster="/api/thumbnail"
+          poster={`${process.env.REACT_APP_BACKEND_URL || ''}/api/thumbnail/${jobId}`}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
         >
-          <source src={`/api/preview/${jobId}`} type="video/mp4" />
+          <source src={`${process.env.REACT_APP_BACKEND_URL || ''}/api/preview/${jobId}`} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        
-        <div className="vr-controls">
-          <button 
-            className="vr-control-btn"
-            onClick={handlePlayPause}
-          >
+
+        {/* Video Controls */}
+        <div className="vr-controls mt-4 flex justify-center gap-3">
+          <button className="vr-control-btn" onClick={handlePlayPause}>
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
-          
-          <select 
+
+          <select
             className="vr-control-btn"
             value={viewMode}
             onChange={(e) => setViewMode(e.target.value)}
@@ -129,7 +122,7 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
             <option value="side-by-side">Side by Side</option>
             <option value="anaglyph">3D Anaglyph</option>
           </select>
-          
+
           <button className="vr-control-btn">
             <Eye className="w-4 h-4" />
           </button>
@@ -137,7 +130,7 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
       </motion.div>
 
       {/* VR Headset Compatibility */}
-      <motion.div 
+      <motion.div
         className="card mb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -146,7 +139,7 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
         <h3 className="text-xl font-semibold text-white mb-4 text-center">
           Compatible VR Headsets
         </h3>
-        
+
         <div className="vr-headset-icons">
           {vrHeadsets.map((headset, index) => (
             <motion.div
@@ -162,61 +155,57 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
             </motion.div>
           ))}
         </div>
-        
+
         <p className="text-center text-white opacity-70 text-sm mt-4">
-          Your VR 180 video is compatible with all major VR headsets and platforms
+          Compatible with all major VR headsets and platforms.
         </p>
       </motion.div>
 
       {/* Download Section */}
-      <motion.div 
+      <motion.div
         className="download-section"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.8 }}
       >
-        <div className="download-info">
-          <h3 className="text-xl font-semibold text-white mb-4">
-            Ready for VR Experience
-          </h3>
-          
-          <div className="grid grid-2 gap-4 mb-6 text-sm text-white opacity-80">
-            <div>
-              <strong>Original:</strong> {originalFile?.name}
-            </div>
-            <div>
-              <strong>Format:</strong> VR 180 MP4
-            </div>
-            <div>
-              <strong>Resolution:</strong> 3840x2160 (4K)
-            </div>
-            <div>
-              <strong>Projection:</strong> Equirectangular
-            </div>
+        <h3 className="text-xl font-semibold text-white mb-4">Ready for VR Experience</h3>
+
+        <div className="grid grid-2 gap-4 mb-6 text-sm text-white opacity-80">
+          <div>
+            <strong>Original:</strong> {originalFile?.name}
           </div>
-          
-          <div className="flex gap-4 justify-center">
-            <button
-              onClick={handleDownload}
-              className="btn-primary flex items-center gap-2"
-            >
-              <Download className="w-5 h-5" />
-              Download VR 180 Video
-            </button>
-            
-            <button
-              onClick={onStartOver}
-              className="btn-secondary flex items-center gap-2"
-            >
-              <RotateCcw className="w-5 h-5" />
-              Convert Another Video
-            </button>
+          <div>
+            <strong>Format:</strong> VR 180 MP4
           </div>
+          <div>
+            <strong>Resolution:</strong> 3840x2160 (4K)
+          </div>
+          <div>
+            <strong>Projection:</strong> Equirectangular
+          </div>
+        </div>
+
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={handleDownload}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Download className="w-5 h-5" />
+            Download VR 180 Video
+          </button>
+
+          <button
+            onClick={onStartOver}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <RotateCcw className="w-5 h-5" />
+            Convert Another Video
+          </button>
         </div>
       </motion.div>
 
       {/* Instructions */}
-      <motion.div 
+      <motion.div
         className="card mt-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -226,48 +215,26 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
           <Star className="w-5 h-5 text-yellow-400" />
           How to View Your VR 180 Video
         </h3>
-        
-        <div className="space-y-4 text-white opacity-80">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
-              1
-            </div>
-            <div>
-              <strong>Download the video</strong> to your device or transfer it to your VR headset's storage.
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
-              2
-            </div>
-            <div>
-              <strong>Open your VR media player</strong> (Oculus Gallery, SteamVR Media Player, etc.).
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
-              3
-            </div>
-            <div>
-              <strong>Select "VR 180" or "Stereoscopic"</strong> viewing mode for the best experience.
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
-              4
-            </div>
-            <div>
-              <strong>Enjoy your immersive experience!</strong> Look around to explore the 180° field of view.
-            </div>
-          </div>
-        </div>
+
+        <ol className="space-y-4 text-white opacity-80">
+          {[
+            'Download the video to your device or transfer it to your VR headset.',
+            'Open your VR media player (Oculus Gallery, SteamVR Media Player, etc.).',
+            'Select "VR 180" or "Stereoscopic" viewing mode.',
+            'Enjoy your immersive experience with a 180° field of view.',
+          ].map((step, i) => (
+            <li key={i} className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                {i + 1}
+              </div>
+              <div>{step}</div>
+            </li>
+          ))}
+        </ol>
       </motion.div>
 
       {/* Share Section */}
-      <motion.div 
+      <motion.div
         className="text-center mt-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -278,7 +245,7 @@ const PreviewSection = ({ jobId, originalFile, onStartOver }) => {
           Share Your Creation
         </button>
         <p className="text-white opacity-60 text-sm mt-2">
-          Show others what you've created with our VR 180 platform
+          Show others what you've created with our VR 180 platform.
         </p>
       </motion.div>
     </div>

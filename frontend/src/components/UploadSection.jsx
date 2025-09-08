@@ -7,33 +7,41 @@ const UploadSection = ({ onFileUpload }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Handle file drop
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
       setSelectedFile(acceptedFiles[0]);
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  // Dropzone configuration
+  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
     accept: {
-      'video/*': ['.mp4', '.avi', '.mov', '.mkv', '.webm']
+      'video/*': ['.mp4', '.avi', '.mov', '.mkv', '.webm'],
     },
     maxSize: 500 * 1024 * 1024, // 500MB
-    multiple: false
+    multiple: false,
   });
 
+  // Handle file upload
   const handleUpload = async () => {
     if (!selectedFile) return;
-    
+
     setIsUploading(true);
     try {
       await onFileUpload(selectedFile);
+
+      // Reset state after successful upload
+      setIsUploading(false);
+      setSelectedFile(null);
     } catch (error) {
       console.error('Upload failed:', error);
-      setIsUploading(false);
+      setIsUploading(false); // Stop loading spinner on error
     }
   };
 
+  // Format file size display
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -45,7 +53,7 @@ const UploadSection = ({ onFileUpload }) => {
   return (
     <div className="content-section">
       {/* Hero Section */}
-      <motion.div 
+      <motion.div
         className="hero-section"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -53,13 +61,13 @@ const UploadSection = ({ onFileUpload }) => {
       >
         <h1 className="hero-title">Transform 2D Videos into VR 180</h1>
         <p className="hero-subtitle">
-          Upload your 2D video and watch it come to life as an immersive VR 180 experience. 
+          Upload your 2D video and watch it come to life as an immersive VR 180 experience.
           Our AI-powered platform creates depth maps and stereoscopic views without any external APIs.
         </p>
       </motion.div>
 
       {/* Features Grid */}
-      <motion.div 
+      <motion.div
         className="features-grid"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -97,18 +105,18 @@ const UploadSection = ({ onFileUpload }) => {
       </motion.div>
 
       {/* Upload Section */}
-      <motion.div 
+      <motion.div
         className="card"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <div 
-          {...getRootProps()} 
+        <div
+          {...getRootProps()}
           className={`upload-zone ${isDragActive ? 'active' : ''}`}
         >
           <input {...getInputProps()} />
-          
+
           {!selectedFile ? (
             <div className="text-center">
               <motion.div
@@ -117,40 +125,51 @@ const UploadSection = ({ onFileUpload }) => {
               >
                 <Upload className="w-16 h-16 text-white opacity-70 mx-auto mb-4" />
               </motion.div>
-              
+
               <h3 className="text-xl font-semibold text-white mb-2">
                 {isDragActive ? 'Drop your video here' : 'Upload Your 2D Video'}
               </h3>
-              
+
               <p className="text-white opacity-70 mb-4">
                 Drag and drop your video file here, or click to browse
               </p>
-              
+
               <div className="text-sm text-white opacity-60">
                 <p>Supported formats: MP4, AVI, MOV, MKV, WebM</p>
                 <p>Maximum size: 500MB</p>
               </div>
+
+              {/* File rejection feedback */}
+              {fileRejections.length > 0 && (
+                <p className="text-red-500 text-sm mt-3">
+                  ❌ File is too large or unsupported format. Please try again.
+                </p>
+              )}
             </div>
           ) : (
             <div className="text-center">
               <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-              
+
               <h3 className="text-xl font-semibold text-white mb-2">File Selected</h3>
-              
+
               <div className="bg-white bg-opacity-10 rounded-lg p-4 mb-4 text-left">
                 <div className="flex items-center gap-3 mb-2">
                   <Film className="w-5 h-5 text-blue-400" />
                   <span className="text-white font-medium">{selectedFile.name}</span>
                 </div>
-                
+
                 <div className="text-sm text-white opacity-70 space-y-1">
                   <p>Size: {formatFileSize(selectedFile.size)}</p>
                   <p>Type: {selectedFile.type}</p>
-                  <p>Last modified: {new Date(selectedFile.lastModified).toLocaleDateString()}</p>
+                  <p>
+                    Last modified:{' '}
+                    {new Date(selectedFile.lastModified).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
 
               <div className="flex gap-3 justify-center">
+                {/* Choose different file */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -160,14 +179,15 @@ const UploadSection = ({ onFileUpload }) => {
                 >
                   Choose Different File
                 </button>
-                
+
+                {/* Start upload */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleUpload();
                   }}
                   disabled={isUploading}
-                  className="btn-primary"
+                  className={`btn-primary ${isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isUploading ? (
                     <div className="flex items-center gap-2">
@@ -187,17 +207,17 @@ const UploadSection = ({ onFileUpload }) => {
           )}
         </div>
 
-        {/* Instructions */}
+        {/* Instructions Section */}
         <div className="mt-6 p-4 bg-white bg-opacity-5 rounded-lg border border-white border-opacity-20">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-white opacity-80">
               <p className="font-medium mb-2">Tips for best results:</p>
               <ul className="space-y-1 list-disc list-inside opacity-70">
-                <li>Use videos with clear depth cues (foreground/background objects)</li>
-                <li>Higher resolution videos (720p+) produce better VR experiences</li>
-                <li>Avoid videos with rapid camera movements for smoother conversion</li>
-                <li>Scenes with varied lighting help create more accurate depth maps</li>
+                <li>Use videos with clear depth cues (foreground/background objects).</li>
+                <li>Higher resolution videos (720p+) produce better VR experiences.</li>
+                <li>Avoid rapid camera movements for smoother conversion.</li>
+                <li>Varied lighting improves depth map accuracy.</li>
               </ul>
             </div>
           </div>

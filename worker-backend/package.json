@@ -1,0 +1,14 @@
+{
+  "name": "vr180-worker-backend",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker backend for VR 180 platform",
+  "main": "src/index.js",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

@@ -116,16 +116,24 @@ class VR180Processor {
   }
 
   updateStatus(status, progress = 0, message = '') {
+    // Ensure progress is a valid number between 0-100
+    const safeProgress = Math.max(0, Math.min(100, isNaN(progress) ? 0 : progress));
+    
     const statusData = {
       jobId: this.jobId,
       status,
-      progress,
+      progress: safeProgress,
       message,
       originalName: this.originalName,
       timestamp: new Date().toISOString()
     };
-    fs.writeJsonSync(this.statusFile, statusData);
-    this.io.emit('processingUpdate', statusData);
+    
+    try {
+      fs.writeJsonSync(this.statusFile, statusData);
+      this.io.emit('processingUpdate', statusData);
+    } catch (error) {
+      console.error('Status update error:', error);
+    }
   }
 
   async generateDepthMap(image) {
@@ -223,9 +231,8 @@ class VR180Processor {
           '-movflags', '+faststart'
         ])
         .output(outputPath)
-        .on('progress', (progress) => {
-          const finalProgress = 90 + (progress.percent * 0.1);
-          this.updateStatus('processing', Math.min(99, finalProgress), 'Finalizing VR 180 video...');
+        .on('start', () => {
+          this.updateStatus('processing', 95, 'Finalizing VR 180 video...');
         })
         .on('end', () => resolve(outputPath))
         .on('error', (err) => reject(new Error(`Video creation failed: ${err.message}`)))
